@@ -1,1 +1,118 @@
+---
+title: "گزارش تحلیل داده‌های بازاریابی مستقیم"
+author: "دانشجو"
+date: "`r Sys.Date()`"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    keep_tex: yes
+fontsize: 12pt
+mainfont: XB Niloofar
+lang: fa
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggplot2)
+direct <- read.csv("DirectMarketing.csv", stringsAsFactors = TRUE)
+```
+
+# ۱. خلاصه متغیرها
+```{r summary}
+summary(direct)
+```
+
+# ۲. درصد مشتریان زن
+```{r percent_female}
+mean(direct$Gender == "Female", na.rm = TRUE) * 100
+```
+
+# ۳. درصد مردان متاهل با حقوق بالای ۵۰ هزار دلار
+```{r rich_married_men}
+mean(direct$Gender == "Male" & direct$Married == "Married" & direct$Salary > 50000, na.rm = TRUE) * 100
+```
+
+# ۴. نمودار فراوانی گروه‌های سنی
+```{r age_freq_bar, fig.cap="Distribution Age"}
+age_counts <- direct %>%
+  count(Age) %>%
+  arrange(n)
+ggplot(age_counts, aes(x = reorder(Age, n), y = n)) + 
+  geom_bar(stat = "identity", fill = "#4682B4") +
+  ylim(0,600) +
+  labs(title = "Distribution Age", x = "Category Age", y = "Count")
+```
+
+# ۵. نمودار انباشته جنسیت و سن
+```{r age_gender_stack, fig.cap="Gender and Age by Distribution"}
+age_gender <- direct %>%
+  count(Age, Gender) %>%
+  arrange(n)
+ggplot(age_gender, aes(x = reorder(Age, n), y = n, fill = Gender)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_fill_manual(values = c("Female" = "green", "Male" = "red"),
+                    name = "Gender",
+                    labels = c("زن", "مرد")) +
+  ylim(0,600) +
+  labs(title = "Gender and Age by Distribution", x = "Category Age", y = "Count")
+```
+
+# ۶. نمودار چگالی میزان خرید و برازش توزیع نمایی
+```{r density_amount, fig.cap="Density of AmountSpent with Exponential Fit"}
+exp_rate <- 1/mean(direct$AmountSpent, na.rm = TRUE)
+ggplot(direct, aes(x = AmountSpent)) +
+  geom_density(fill = "lightblue", alpha = 0.5) +
+  stat_function(fun = dexp, args = list(rate=exp_rate), color="red", size=1.2) +
+  labs(title="Density of AmountSpent + Exponential Fit", x="AmountSpent (USD)", y="Density")
+```
+
+# ۷. نمودار جعبه‌ای کاتالوگ و میزان خرید
+```{r box_catalog, fig.cap="Boxplot: Catalogs vs AmountSpent"}
+ggplot(direct, aes(x=factor(Catalogs), y=AmountSpent)) +
+  geom_boxplot(fill="khaki") +
+  labs(title="Boxplot: AmountSpent by Catalogs", x="Number of Catalogs", y="AmountSpent (USD)")
+```
+
+# ۸. پراکندگی درآمد و خرید با خط رگرسیون
+```{r scatter_salary, fig.cap="Scatterplot: Salary vs AmountSpent"}
+ggplot(direct, aes(x=Salary, y=AmountSpent)) +
+  geom_point(alpha=0.4, color="#006699") +
+  geom_smooth(method="lm", color="red", size=2) +
+  labs(title="Scatterplot: Salary vs AmountSpent", x="Salary (USD)", y="AmountSpent (USD)")
+```
+
+# ۹. بررسی اثر جنسیت بر خرید
+## الف) توزیع میزان خرید برحسب جنسیت
+```{r box_gender_amount, fig.cap="Boxplot: AmountSpent by Gender"}
+ggplot(direct, aes(x=Gender, y=AmountSpent, fill=Gender)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("Female"="green", "Male"="red")) +
+  labs(title="AmountSpent by Gender", x="Gender", y="AmountSpent (USD)")
+```
+```{r mean_amount_gender}
+aggregate(AmountSpent ~ Gender, data=direct, mean)
+```
+
+## ب) مقایسه میانگین دستمزد بر اساس جنسیت
+```{r box_salary_gender, fig.cap="Salary by Gender"}
+ggplot(direct, aes(x=Gender, y=Salary, fill=Gender)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("Female"="green", "Male"="red")) +
+  labs(title="Salary by Gender", x="Gender", y="Salary (USD)")
+```
+```{r mean_salary_gender}
+aggregate(Salary ~ Gender, data=direct, mean)
+```
+
+## ج) مقایسه خرید در سطوح درآمدی مختلف به تفکیک جنسیت
+```{r median_salary_effect}
+direct <- direct %>%
+  mutate(HighSalary = ifelse(Salary > median(Salary, na.rm=TRUE), "High", "Low"))
+aggregate(AmountSpent ~ Gender + HighSalary, data=direct, mean)
+ggplot(direct, aes(x=Gender, y=AmountSpent, fill=Gender)) +
+  geom_boxplot() +
+  facet_wrap(~HighSalary) +
+  scale_fill_manual(values=c("Female"="green", "Male"="red")) +
+  labs(title="AmountSpent by Gender within Salary Groups", x="Gender", y="AmountSpent (USD)")
+```
 
