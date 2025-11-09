@@ -1,23 +1,27 @@
-name: Python CI
+name: R CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: |
-          pip install pytest
-      - name: Run tests
-        run: |
-          pytest -v
+    - uses: actions/checkout@v3
+
+    - name: Set up R
+      uses: r-lib/actions/setup-r@v2
+
+    - name: Install dependencies
+      run: |
+        Rscript -e 'install.packages(c("ggplot2","shiny","dplyr","tidyr"))'
+
+    - name: Check R scripts
+      run: |
+        Rscript -e 'if(!file.exists("R-Marketing-Analysis/MarketingAnalysis.Rmd")) stop("Missing RMarkdown file")'
+        Rscript -e 'if(!file.exists("R-Shiny-MTCARS-Dashboard/app.R")) stop("Missing Shiny app")'
