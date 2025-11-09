@@ -1,0 +1,14 @@
+# R specific
+.Rhistory
+.RData
+.Rproj.user/
+.Ruserdata
+.Rplots.pdf
+
+# Python (tests folder)
+__pycache__/
+*.pyc
+*.pyo
+
+# General
+.DS_Store
