@@ -18,7 +18,7 @@ The analysis is performed with **RMarkdown** and includes various descriptive vi
 1. نصب پکیج‌های مورد نیاز:  
 ```R
 install.packages(c("tidyverse","ggplot2"))
-فایل2. MarketingAnalysis.Rmd را در RStudio باز و اجرا کنید.
+2.فایل MarketingAnalysis.Rmd را در RStudio باز و اجرا کنید.
 
 Install required packages:
 
